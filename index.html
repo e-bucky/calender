@@ -2,134 +2,128 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>To DO Calendar</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multilingual Todo ＋ Calendar</title>
 
 <style>
-body {
+body{
   font-family: Arial, sans-serif;
-  max-width: 900px;
-  margin: auto;
-  padding: 20px;
-}
-h1, h2 {
-  text-align: center;
+  margin:20px;
+  background:#f5f5f5;
 }
 
-/* 共通 */
-select, input, button {
-  padding: 6px;
-  margin: 5px 0;
+h1{text-align:center;}
+
+.container{
+  display:flex;
+  gap:30px;
 }
 
-/* カレンダー */
-.calendar {
-  margin: 20px 0;
-}
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
-}
-.day-name {
-  font-weight: bold;
-  text-align: center;
-}
-.day {
-  border: 1px solid #e0e0e0;
-  min-height: 110px;
-  padding: 4px;
-  position: relative;
-  cursor: pointer;
-}
-.day-number {
-  font-size: 12px;
-  position: absolute;
-  top: 4px;
-  right: 6px;
-}
-.day.today {
-  background: #e8f0fe;
+.todo-section, .calendar-section{
+  background:white;
+  padding:15px;
+  border-radius:8px;
+  box-shadow:0 2px 5px rgba(0,0,0,0.1);
 }
 
-/* カレンダー内ToDo */
-.calendar-todo {
-  margin-top: 18px;
-  background: #1a73e8;
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-}
-.calendar-todo.done {
-  background: #9aa0a6;
-  text-decoration: line-through;
+.todo-section{width:40%;}
+.calendar-section{width:60%;}
+
+.todo-input{
+  display:flex;
+  gap:5px;
+  margin-bottom:10px;
 }
 
-/* ToDoリスト */
-ul {
-  padding-left: 0;
-}
-.todo-item {
-  list-style: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 6px 0;
-}
-.checkbox {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #333;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-weight: bold;
-}
-.done-text {
-  text-decoration: line-through;
-  color: gray;
-}
-.delete-btn {
-  margin-left: auto;
-  cursor: pointer;
-  color: #d93025;
-  font-weight: bold;
-  font-size: 18px;
+.todo-input input, button, select{
+  padding:5px;
 }
 
-.delete-btn:hover {
-  opacity: 0.7;
+ul{list-style:none; padding:0;}
+
+li{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:5px 0;
+}
+
+.done{
+  text-decoration:line-through;
+  color:gray;
+}
+
+/* Calendar */
+.calendar-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.calendar-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:5px;
+}
+
+.day-name{
+  font-weight:bold;
+  text-align:center;
+}
+
+.day{
+  min-height:80px;
+  background:#fafafa;
+  padding:5px;
+  border-radius:5px;
+  cursor:pointer;
+}
+
+.today{
+  background:#e0f0ff;
+}
+
+.day-number{
+  font-weight:bold;
+  font-size:14px;
+}
+
+.calendar-todo{
+  font-size:12px;
+  background:#d0ebff;
+  margin-top:3px;
+  padding:2px 4px;
+  border-radius:3px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>To DO Calendar</h1>
+<h1>Todo with Calendar</h1>
 
-<label>
-Language:
-<select id="languageSelect">
+<div style="text-align:right; margin-bottom:10px;">
+<select id="language">
   <option value="ja">日本語</option>
   <option value="en">English</option>
-  <option value="zh-cn">中文（简体）</option>
-  <option value="zh-tw">中文（繁體）</option>
+  <option value="zh-CN">中文（简体）</option>
+  <option value="zh-TW">中文（繁體）</option>
   <option value="ko">한국어</option>
 </select>
-</label>
+</div>
 
-<div class="calendar">
+<div class="container">
+
+<div class="todo-section">
+  <div class="todo-input">
+    <input type="text" id="todoInput">
+    <input type="date" id="dueDate">
+    <button id="addBtn"></button>
+  </div>
+  <ul id="todoList"></ul>
+</div>
+
+<div class="calendar-section">
   <div class="calendar-header">
     <button id="prevMonth">◀</button>
     <h2 id="monthYear"></h2>
@@ -139,143 +133,196 @@ Language:
   <div class="calendar-grid" id="calendarDays"></div>
 </div>
 
-<h2 id="todoTitle">ToDoリスト</h2>
-<input type="text" id="todoInput" placeholder="やることを入力">
-<input type="date" id="dueDate">
-<button id="addBtn">追加</button>
-
-<ul id="todoList"></ul>
+</div>
 
 <script>
-/* 多言語 */
-const texts = {
-  ja:{days:["日","月","火","水","木","金","土"],todoTitle:"ToDoリスト",placeholder:"やることを入力",add:"追加",locale:"ja-JP"},
-  en:{days:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],todoTitle:"ToDo List",placeholder:"Enter a task",add:"Add",locale:"en-US"},
-  "zh-cn":{days:["日","一","二","三","四","五","六"],todoTitle:"待办事项",placeholder:"输入任务",add:"添加",locale:"zh-CN"},
-  "zh-tw":{days:["日","一","二","三","四","五","六"],todoTitle:"待辦事項",placeholder:"輸入任務",add:"新增",locale:"zh-TW"},
-  ko:{days:["일","월","화","수","목","금","토"],todoTitle:"할 일 목록",placeholder:"할 일을 입력하세요",add:"추가",locale:"ko-KR"}
+const todoInput=document.getElementById("todoInput");
+const dueDate=document.getElementById("dueDate");
+const addBtn=document.getElementById("addBtn");
+const todoList=document.getElementById("todoList");
+const language=document.getElementById("language");
+
+const monthYear=document.getElementById("monthYear");
+const dayNames=document.getElementById("dayNames");
+const calendarDays=document.getElementById("calendarDays");
+const prevMonth=document.getElementById("prevMonth");
+const nextMonth=document.getElementById("nextMonth");
+
+let todos=JSON.parse(localStorage.getItem("todos"))||[];
+let currentDate=new Date();
+
+const texts={
+  "ja":{
+    add:"追加",
+    placeholder:"タスクを入力",
+    deleteConfirm:"このタスクを削除しますか？",
+    days:["日","月","火","水","木","金","土"],
+    locale:"ja-JP"
+  },
+  "en":{
+    add:"Add",
+    placeholder:"Enter task",
+    deleteConfirm:"Delete this task?",
+    days:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+    locale:"en-US"
+  },
+  "zh-CN":{
+    add:"添加",
+    placeholder:"输入任务",
+    deleteConfirm:"确定删除该任务？",
+    days:["日","一","二","三","四","五","六"],
+    locale:"zh-CN"
+  },
+  "zh-TW":{
+    add:"新增",
+    placeholder:"輸入任務",
+    deleteConfirm:"確定刪除此任務？",
+    days:["日","一","二","三","四","五","六"],
+    locale:"zh-TW"
+  },
+  "ko":{
+    add:"추가",
+    placeholder:"할 일을 입력",
+    deleteConfirm:"이 작업을 삭제하시겠습니까?",
+    days:["일","월","화","수","목","금","토"],
+    locale:"ko-KR"
+  }
 };
 
-let currentDate = new Date();
-let todos = [];
-
-const langSelect = document.getElementById("languageSelect");
-const dayNamesEl = document.getElementById("dayNames");
-const calendarDaysEl = document.getElementById("calendarDays");
-const monthYearEl = document.getElementById("monthYear");
-
-/* カレンダー描画 */
-function renderCalendar() {
-  const t = texts[langSelect.value];
-  dayNamesEl.innerHTML = "";
-  calendarDaysEl.innerHTML = "";
-
-  t.days.forEach(d => {
-    const el = document.createElement("div");
-    el.className = "day-name";
-    el.textContent = d;
-    dayNamesEl.appendChild(el);
-  });
-
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-  const today = new Date();
-
-  monthYearEl.textContent =
-    new Date(year, month).toLocaleDateString(t.locale,{year:"numeric",month:"long"});
-
-  const firstDay = new Date(year, month, 1).getDay();
-  const lastDate = new Date(year, month + 1, 0).getDate();
-
-  for (let i=0;i<firstDay;i++) calendarDaysEl.appendChild(document.createElement("div"));
-
-  for (let d=1; d<=lastDate; d++) {
-    const div = document.createElement("div");
-    div.className = "day";
-
-    const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-
-    const num = document.createElement("div");
-    num.className = "day-number";
-    num.textContent = d;
-    div.appendChild(num);
-
-    if (d===today.getDate() && month===today.getMonth() && year===today.getFullYear())
-      div.classList.add("today");
-
-    div.onclick = () => document.getElementById("dueDate").value = dateStr;
-
-    todos.filter(td => td.due===dateStr).forEach(td=>{
-      const tdiv = document.createElement("div");
-      tdiv.className = "calendar-todo"+(td.done?" done":"");
-      tdiv.textContent = td.text;
-      tdiv.onclick = e=>{
-        e.stopPropagation();
-        td.done=!td.done;
-        renderTodoList();
-        renderCalendar();
-      };
-      div.appendChild(tdiv);
-    });
-
-    calendarDaysEl.appendChild(div);
-  }
+function save(){
+  localStorage.setItem("todos",JSON.stringify(todos));
 }
 
-/* ToDoリスト */
-function renderTodoList() {
-  const list = document.getElementById("todoList");
-  list.innerHTML = "";
-  todos.forEach(td=>{
-    const li=document.createElement("li");
-    li.className="todo-item";
+function renderTodo(){
+  todoList.innerHTML="";
+  const t=texts[language.value];
 
-    const cb=document.createElement("span");
-    cb.className="checkbox";
-    cb.textContent=td.done?"✓":"□";
-    cb.onclick=()=>{
-      td.done=!td.done;
-      renderTodoList();
+  todos.forEach((todo,index)=>{
+    const li=document.createElement("li");
+
+    const span=document.createElement("span");
+    span.textContent=todo.text+" ("+todo.due+")";
+    if(todo.done) span.classList.add("done");
+
+    span.onclick=()=>{
+      todo.done=!todo.done;
+      save();
+      renderTodo();
       renderCalendar();
     };
 
-    const text=document.createElement("span");
-    text.textContent=td.text;
-    if(td.done) text.classList.add("done-text");
+    const del=document.createElement("button");
+    del.textContent="×";
+    del.onclick=()=>{
+      if(confirm(t.deleteConfirm)){
+        todos.splice(index,1);
+        save();
+        renderTodo();
+        renderCalendar();
+      }
+    };
 
-    li.append(cb,text);
-    list.appendChild(li);
+    li.append(span,del);
+    todoList.appendChild(li);
   });
 }
 
-/* ToDo追加 */
-document.getElementById("addBtn").onclick=()=>{
-  const input=document.getElementById("todoInput");
-  const due=document.getElementById("dueDate");
-  if(!input.value||!due.value) return;
-  todos.push({text:input.value,due:due.value,done:false});
-  input.value=""; due.value="";
-  renderTodoList(); renderCalendar();
+function renderCalendar(){
+  const t=texts[language.value];
+  dayNames.innerHTML="";
+  calendarDays.innerHTML="";
+
+  t.days.forEach(d=>{
+    const el=document.createElement("div");
+    el.className="day-name";
+    el.textContent=d;
+    dayNames.appendChild(el);
+  });
+
+  const year=currentDate.getFullYear();
+  const month=currentDate.getMonth();
+  const today=new Date();
+
+  monthYear.textContent=
+    new Date(year,month)
+    .toLocaleDateString(t.locale,{year:"numeric",month:"long"});
+
+  const firstDay=new Date(year,month,1).getDay();
+  const lastDate=new Date(year,month+1,0).getDate();
+
+  for(let i=0;i<firstDay;i++)
+    calendarDays.appendChild(document.createElement("div"));
+
+  for(let d=1; d<=lastDate; d++){
+    const div=document.createElement("div");
+    div.className="day";
+
+    const dateStr=
+      year+"-"+String(month+1).padStart(2,"0")+
+      "-"+String(d).padStart(2,"0");
+
+    const num=document.createElement("div");
+    num.className="day-number";
+    num.textContent=d;
+    div.appendChild(num);
+
+    if(d===today.getDate() &&
+       month===today.getMonth() &&
+       year===today.getFullYear()){
+      div.classList.add("today");
+    }
+
+    div.onclick=()=>{ dueDate.value=dateStr; };
+
+    todos
+      .filter(td=>td.due===dateStr)
+      .forEach(td=>{
+        const tdiv=document.createElement("div");
+        tdiv.className="calendar-todo";
+        tdiv.textContent=td.text;
+        div.appendChild(tdiv);
+      });
+
+    calendarDays.appendChild(div);
+  }
+}
+
+function updateLanguage(){
+  const t=texts[language.value];
+  addBtn.textContent=t.add;
+  todoInput.placeholder=t.placeholder;
+  renderTodo();
+  renderCalendar();
+}
+
+addBtn.onclick=()=>{
+  if(todoInput.value && dueDate.value){
+    todos.push({
+      text:todoInput.value,
+      due:dueDate.value,
+      done:false
+    });
+    todoInput.value="";
+    save();
+    renderTodo();
+    renderCalendar();
+  }
 };
 
-/* 月切替 */
-document.getElementById("prevMonth").onclick=()=>{currentDate.setMonth(currentDate.getMonth()-1);renderCalendar();};
-document.getElementById("nextMonth").onclick=()=>{currentDate.setMonth(currentDate.getMonth()+1);renderCalendar();};
-
-/* 言語切替 */
-langSelect.onchange=()=>{
-  const t=texts[langSelect.value];
-  document.getElementById("todoTitle").textContent=t.todoTitle;
-  document.getElementById("todoInput").placeholder=t.placeholder;
-  document.getElementById("addBtn").textContent=t.add;
+prevMonth.onclick=()=>{
+  currentDate.setMonth(currentDate.getMonth()-1);
   renderCalendar();
 };
 
-/* 初期化 */
-renderCalendar();
-renderTodoList();
+nextMonth.onclick=()=>{
+  currentDate.setMonth(currentDate.getMonth()+1);
+  renderCalendar();
+};
+
+language.onchange=updateLanguage;
+
+updateLanguage();
 </script>
 
 </body>
 </html>
-
