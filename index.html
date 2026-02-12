@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Todo ＋ Calendar</title>
+<title>Multilingual Todo ＋ Calendar</title>
 
 <style>
 body{
@@ -34,7 +34,8 @@ h1{text-align:center;}
   margin-bottom:10px;
 }
 
-.todo-input input, button, select{
+.todo-input input,
+.todo-input button{
   padding:5px;
 }
 
@@ -45,6 +46,7 @@ li{
   justify-content:space-between;
   align-items:center;
   padding:5px 0;
+  gap:5px;
 }
 
 .done{
@@ -52,7 +54,25 @@ li{
   color:gray;
 }
 
-/* Calendar */
+button{cursor:pointer;}
+
+.complete-btn{
+  background:#4CAF50;
+  color:white;
+  border:none;
+  padding:4px 8px;
+  border-radius:4px;
+}
+
+.delete-btn{
+  background:#f44336;
+  color:white;
+  border:none;
+  padding:4px 8px;
+  border-radius:4px;
+}
+
+/* ===== Calendar ===== */
 .calendar-header{
   display:flex;
   justify-content:space-between;
@@ -94,6 +114,13 @@ li{
   margin-top:3px;
   padding:2px 4px;
   border-radius:3px;
+}
+
+/* ★ 完了時の色 */
+.calendar-done{
+  background:#c8e6c9;
+  color:#2e7d32;
+  text-decoration:line-through;
 }
 </style>
 </head>
@@ -152,41 +179,11 @@ let todos=JSON.parse(localStorage.getItem("todos"))||[];
 let currentDate=new Date();
 
 const texts={
-  "ja":{
-    add:"追加",
-    placeholder:"タスクを入力",
-    deleteConfirm:"このタスクを削除しますか？",
-    days:["日","月","火","水","木","金","土"],
-    locale:"ja-JP"
-  },
-  "en":{
-    add:"Add",
-    placeholder:"Enter task",
-    deleteConfirm:"Delete this task?",
-    days:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
-    locale:"en-US"
-  },
-  "zh-CN":{
-    add:"添加",
-    placeholder:"输入任务",
-    deleteConfirm:"确定删除该任务？",
-    days:["日","一","二","三","四","五","六"],
-    locale:"zh-CN"
-  },
-  "zh-TW":{
-    add:"新增",
-    placeholder:"輸入任務",
-    deleteConfirm:"確定刪除此任務？",
-    days:["日","一","二","三","四","五","六"],
-    locale:"zh-TW"
-  },
-  "ko":{
-    add:"추가",
-    placeholder:"할 일을 입력",
-    deleteConfirm:"이 작업을 삭제하시겠습니까?",
-    days:["일","월","화","수","목","금","토"],
-    locale:"ko-KR"
-  }
+  "ja":{add:"追加",placeholder:"タスクを入力",complete:"完了",undo:"戻す",delete:"削除",deleteConfirm:"このタスクを削除しますか？",days:["日","月","火","水","木","金","土"],locale:"ja-JP"},
+  "en":{add:"Add",placeholder:"Enter task",complete:"Done",undo:"Undo",delete:"Delete",deleteConfirm:"Delete this task?",days:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],locale:"en-US"},
+  "zh-CN":{add:"添加",placeholder:"输入任务",complete:"完成",undo:"撤销",delete:"删除",deleteConfirm:"确定删除该任务？",days:["日","一","二","三","四","五","六"],locale:"zh-CN"},
+  "zh-TW":{add:"新增",placeholder:"輸入任務",complete:"完成",undo:"還原",delete:"刪除",deleteConfirm:"確定刪除此任務？",days:["日","一","二","三","四","五","六"],locale:"zh-TW"},
+  "ko":{add:"추가",placeholder:"할 일을 입력",complete:"완료",undo:"되돌리기",delete:"삭제",deleteConfirm:"이 작업을 삭제하시겠습니까?",days:["일","월","화","수","목","금","토"],locale:"ko-KR"}
 };
 
 function save(){
@@ -204,7 +201,10 @@ function renderTodo(){
     span.textContent=todo.text+" ("+todo.due+")";
     if(todo.done) span.classList.add("done");
 
-    span.onclick=()=>{
+    const completeBtn=document.createElement("button");
+    completeBtn.className="complete-btn";
+    completeBtn.textContent=todo.done ? t.undo : t.complete;
+    completeBtn.onclick=()=>{
       todo.done=!todo.done;
       save();
       renderTodo();
@@ -212,7 +212,8 @@ function renderTodo(){
     };
 
     const del=document.createElement("button");
-    del.textContent="×";
+    del.className="delete-btn";
+    del.textContent=t.delete;
     del.onclick=()=>{
       if(confirm(t.deleteConfirm)){
         todos.splice(index,1);
@@ -222,7 +223,7 @@ function renderTodo(){
       }
     };
 
-    li.append(span,del);
+    li.append(span,completeBtn,del);
     todoList.appendChild(li);
   });
 }
@@ -279,6 +280,9 @@ function renderCalendar(){
       .forEach(td=>{
         const tdiv=document.createElement("div");
         tdiv.className="calendar-todo";
+        if(td.done){
+          tdiv.classList.add("calendar-done");
+        }
         tdiv.textContent=td.text;
         div.appendChild(tdiv);
       });
@@ -297,11 +301,7 @@ function updateLanguage(){
 
 addBtn.onclick=()=>{
   if(todoInput.value && dueDate.value){
-    todos.push({
-      text:todoInput.value,
-      due:dueDate.value,
-      done:false
-    });
+    todos.push({text:todoInput.value,due:dueDate.value,done:false});
     todoInput.value="";
     save();
     renderTodo();
